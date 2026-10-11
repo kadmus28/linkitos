@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#efede7" />
+    <title>Linkitos — tus hallazgos, en su sitio</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#" aria-label="Linkitos inicio">
+          <span class="brand-mark"><span></span><span></span><span></span></span>
+          <span>linkitos<span class="brand-dot">.</span></span>
+        </a>
+        <div class="side-caption">TU ESPACIO</div>
+        <nav class="main-nav" aria-label="Navegación principal">
+          <button class="nav-link active" data-filter="all"><span class="nav-icon">✳</span><span>Todos mis links</span><span class="nav-count" id="all-count">0</span></button>
+          <button class="nav-link" data-filter="favorites"><span class="nav-icon">♡</span><span>Favoritos</span></button>
+        </nav>
+        <div class="category-heading"><span class="side-caption">CATEGORÍAS</span><button id="add-category-side" class="icon-button small" aria-label="Añadir categoría" title="Añadir categoría">＋</button></div>
+        <nav class="category-list" id="category-list" aria-label="Categorías"></nav>
+        <button class="new-category" id="add-category"><span>＋</span> Nueva categoría</button>
+        <div class="sidebar-bottom">
+          <div class="little-note"><span class="sparkle">✦</span><p>Un rincón para guardar todo eso que te encanta.</p></div>
+          <div class="profile"><div class="avatar" id="profile-avatar">M</div><div class="profile-copy"><strong id="profile-name">Mi colección</strong><small id="profile-email">Tu espacio personal</small></div><button class="signout-button" id="sign-out" title="Cerrar sesión" aria-label="Cerrar sesión">↪</button></div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <button class="mobile-menu icon-button" id="mobile-menu" aria-label="Abrir menú">☰</button>
+          <div class="breadcrumb">Mi espacio <span>/</span> <strong id="crumb-label">Todos mis links</strong></div>
+          <div class="top-actions"><span class="sync-status" id="sync-status"><i></i><span>Sincronizado</span></span><button class="help-button" title="Ayuda">ⓘ <span>¿Cómo funciona?</span></button><button class="avatar top-avatar" id="top-avatar">M</button></div>
+        </header>
+
+        <section class="welcome-row">
+          <div class="welcome-copy"><div class="eyebrow"><span class="eyebrow-line"></span> TU PEQUEÑO UNIVERSO</div><h1 id="page-title">Cosas que me gustan<span class="title-star">✳</span></h1><p id="page-subtitle">Guarda aquí tus próximos favoritos. Todo lo que encuentras, en un solo lugar.</p></div>
+          <button class="primary-button" id="open-add"><span>＋</span> Añadir un link</button>
+        </section>
+
+        <section class="summary-strip" aria-label="Resumen de la colección">
+          <div class="summary-cell"><span class="summary-icon lilac">↗</span><div><strong id="summary-total">0</strong><span>links guardados</span></div></div>
+          <span class="summary-divider"></span>
+          <div class="summary-cell"><span class="summary-icon peach">▦</span><div><strong id="summary-categories">0</strong><span>categorías</span></div></div>
+          <span class="summary-divider"></span>
+          <div class="summary-message"><span>✦</span> Tu próxima gran idea puede empezar con un link.</div>
+          <div class="summary-orb orb-one"></div><div class="summary-orb orb-two"></div>
+        </section>
+
+        <section class="collection-section">
+          <div class="section-top"><div><div class="section-kicker" id="section-kicker">TU COLECCIÓN</div><h2 id="section-title">Tus últimos hallazgos <span class="soft-count" id="visible-count">0</span></h2></div>
+            <div class="collection-tools"><label class="search-box"><span>⌕</span><input id="search" type="search" placeholder="Buscar en mis links" aria-label="Buscar en mis links" /><kbd>⌘ K</kbd></label><button class="sort-button" id="sort-button">Más recientes <span>⌄</span></button></div>
+          </div>
+          <div id="filter-pills" class="filter-pills"></div>
+          <div id="item-grid" class="item-grid"></div>
+          <div id="empty-state" class="empty-state" hidden><div class="empty-illustration"><span>↗</span><i>✦</i><b>♡</b></div><h3>Tu colección empieza aquí</h3><p>Cuando encuentres algo que te guste, guarda el link y vuelve a él cuando quieras.</p><button class="primary-button" id="empty-add">＋ Añadir tu primer link</button></div>
+          <div id="no-results" class="no-results" hidden>No encontramos nada con esa búsqueda. Prueba con otra palabra.</div>
+        </section>
+        <footer class="page-footer"><span>Hecho para guardar las cosas que te hacen ilusión.</span><span>LINKITOS <i>✦</i></span></footer>
+      </main>
+    </div>
+
+    <dialog class="modal" id="item-modal">
+      <form id="item-form" method="dialog">
+        <div class="modal-top"><div><div class="section-kicker">AÑADE ALGO BONITO</div><h2>Guarda un link</h2></div><button class="icon-button close-modal" type="button" aria-label="Cerrar">×</button></div>
+        <p class="modal-intro">Pega el enlace y completa los detalles que quieras recordar.</p>
+        <label class="field-label" for="item-url">Enlace del producto</label><div class="url-input-wrap"><span>↗</span><input id="item-url" name="url" type="url" placeholder="https://…" required /></div><button class="preview-button" type="button" id="preview-link">✦ &nbsp; Completar datos del enlace</button><span class="preview-hint" id="preview-hint">Intentaremos encontrar el nombre, la foto y el precio en la página.</span>
+        <div class="form-grid"><label><span class="field-label">Nombre</span><input name="title" type="text" placeholder="¿Qué es?" required /></label><label><span class="field-label">Precio</span><div class="price-input"><span>€</span><input name="price" type="number" min="0" step="0.01" placeholder="0,00" /></div></label></div>
+        <div class="form-grid"><label><span class="field-label">Categoría</span><select name="category" id="item-category"></select></label><label><span class="field-label">Foto (opcional)</span><input name="image" type="url" placeholder="Enlace de la imagen" /></label></div>
+        <label class="field-label" for="item-notes">Notas <span class="optional">OPCIONAL</span></label><textarea name="notes" id="item-notes" rows="2" placeholder="Talla, color, por qué te gusta…"></textarea>
+        <div class="modal-actions"><button type="button" class="text-button close-modal">Cancelar</button><button type="submit" class="primary-button">Guardar en mi colección <span>↗</span></button></div>
+      </form>
+    </dialog>
+    <dialog class="modal category-modal" id="category-modal"><form id="category-form" method="dialog"><div class="modal-top"><div><div class="section-kicker">HAZLO TUYO</div><h2>Nueva categoría</h2></div><button class="icon-button close-modal" type="button" aria-label="Cerrar">×</button></div><p class="modal-intro">Crea un espacio para los links que quieras tener juntos.</p><label class="field-label" for="category-name">Nombre de la categoría</label><input id="category-name" name="name" type="text" placeholder="Por ejemplo, Plantas" maxlength="24" required /><div class="modal-actions"><button type="button" class="text-button close-modal">Cancelar</button><button type="submit" class="primary-button">Crear categoría <span>✦</span></button></div></form></dialog>
+    <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title">
+      <div class="auth-card">
+        <a class="brand auth-brand" href="#" aria-label="Linkitos"><span class="brand-mark"><span></span><span></span><span></span></span><span>linkitos<span class="brand-dot">.</span></span></a>
+        <div class="section-kicker">TU COLECCIÓN, EN TODAS PARTES</div><h1 id="auth-title">Tus links te esperan.</h1><p class="auth-intro">Inicia sesión para sincronizar tus hallazgos entre el móvil y el ordenador.</p>
+        <form id="auth-form"><label class="field-label" for="auth-email">Correo electrónico</label><input id="auth-email" name="email" type="email" autocomplete="email" placeholder="tu@email.com" required /><label class="field-label" for="auth-password">Contraseña</label><input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="Al menos 6 caracteres" required /><p class="auth-error" id="auth-error" aria-live="polite"></p><button type="submit" class="primary-button auth-submit" id="auth-submit">Iniciar sesión <span>↗</span></button></form>
+        <p class="auth-switch"><span id="auth-switch-label">¿Aún no tienes cuenta?</span> <button id="auth-switch" type="button">Crear una cuenta</button></p>
+        <p class="auth-footnote">Tu colección es privada y solo tú puedes verla.</p>
+      </div>
+    </section>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
