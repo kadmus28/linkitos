@@ -14,11 +14,13 @@ Then open `http://localhost:8000`. The installed PWA and share-to-Linkitos actio
 
 ## Cloud sync
 
-The app uses the existing `media-tracker` Supabase project. Linkitos data lives in the separate `linkitos_categories` and `linkitos_items` tables. Row Level Security policies restrict each account to its own rows; Realtime refreshes the collection on other open devices. The browser configuration contains only the project's publishable key. Never add a service-role or secret key to this folder.
+The app uses the existing `media-tracker` Supabase project. Linkitos data lives in separate `linkitos_*` tables. Row Level Security policies restrict each account to its own rows; Realtime refreshes the collection on other open devices. Project photos are stored in a private bucket with per-user access rules. The browser configuration contains only the project's publishable key. Never add a service-role or secret key to this folder.
+
+The **Proyectos** section creates independent spaces for plans such as a bedroom update. Each project can include a cover photo, ideas or notes, links, and reference photos. Project content syncs across signed-in devices and remains private to its owner. Uploaded project images support JPG, PNG, WebP, and GIF up to 10 MB.
 
 Sign in with an existing Media Tracker account or create an account. On the first sign-in in a browser, previously saved Linkitos items are imported to the cloud; the six sample cards are omitted. The import runs once per browser to avoid copying the same local collection into multiple accounts.
 
-The database schema is in `supabase/linkitos_schema.sql`. The authenticated `product-preview` Edge Function is in `supabase/functions/product-preview/index.ts` and is deployed to the connected project.
+The database schema is in `supabase/linkitos_schema.sql`; applied database changes are also recorded under `supabase/migrations/`. The authenticated `product-preview` Edge Function is in `supabase/functions/product-preview/index.ts` and is deployed to the connected project.
 
 ## Product details
 

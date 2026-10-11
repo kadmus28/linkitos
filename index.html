@@ -22,6 +22,7 @@
         <nav class="main-nav" aria-label="Navegación principal">
           <button class="nav-link active" data-filter="all"><span class="nav-icon">✳</span><span>Todos mis links</span><span class="nav-count" id="all-count">0</span></button>
           <button class="nav-link" data-filter="favorites"><span class="nav-icon">♡</span><span>Favoritos</span></button>
+          <button class="nav-link" id="projects-nav"><span class="nav-icon">✦</span><span>Proyectos</span><span class="nav-count" id="projects-count">0</span></button>
         </nav>
         <div class="category-heading"><span class="side-caption">CATEGORÍAS</span><button id="add-category-side" class="icon-button small" aria-label="Añadir categoría" title="Añadir categoría">＋</button></div>
         <nav class="category-list" id="category-list" aria-label="Categorías"></nav>
@@ -39,12 +40,12 @@
           <div class="top-actions"><span class="sync-status" id="sync-status"><i></i><span>Sincronizado</span></span><button class="help-button" title="Ayuda">ⓘ <span>¿Cómo funciona?</span></button><button class="avatar top-avatar" id="top-avatar">M</button></div>
         </header>
 
-        <section class="welcome-row">
+        <section class="welcome-row" id="welcome-row">
           <div class="welcome-copy"><div class="eyebrow"><span class="eyebrow-line"></span> TU PEQUEÑO UNIVERSO</div><h1 id="page-title">Cosas que me gustan<span class="title-star">✳</span></h1><p id="page-subtitle">Guarda aquí tus próximos favoritos. Todo lo que encuentras, en un solo lugar.</p></div>
           <button class="primary-button" id="open-add"><span>＋</span> Añadir un link</button>
         </section>
 
-        <section class="summary-strip" aria-label="Resumen de la colección">
+        <section class="summary-strip" id="summary-strip" aria-label="Resumen de la colección">
           <div class="summary-cell"><span class="summary-icon lilac">↗</span><div><strong id="summary-total">0</strong><span>links guardados</span></div></div>
           <span class="summary-divider"></span>
           <div class="summary-cell"><span class="summary-icon peach">▦</span><div><strong id="summary-categories">0</strong><span>categorías</span></div></div>
@@ -53,7 +54,7 @@
           <div class="summary-orb orb-one"></div><div class="summary-orb orb-two"></div>
         </section>
 
-        <section class="collection-section">
+        <section class="collection-section" id="collection-section">
           <div class="section-top"><div><div class="section-kicker" id="section-kicker">TU COLECCIÓN</div><h2 id="section-title">Tus últimos hallazgos <span class="soft-count" id="visible-count">0</span></h2></div>
             <div class="collection-tools"><label class="search-box"><span>⌕</span><input id="search" type="search" placeholder="Buscar en mis links" aria-label="Buscar en mis links" /><kbd>⌘ K</kbd></label><button class="sort-button" id="sort-button">Más recientes <span>⌄</span></button></div>
           </div>
@@ -62,6 +63,7 @@
           <div id="empty-state" class="empty-state" hidden><div class="empty-illustration"><span>↗</span><i>✦</i><b>♡</b></div><h3>Tu colección empieza aquí</h3><p>Cuando encuentres algo que te guste, guarda el link y vuelve a él cuando quieras.</p><button class="primary-button" id="empty-add">＋ Añadir tu primer link</button></div>
           <div id="no-results" class="no-results" hidden>No encontramos nada con esa búsqueda. Prueba con otra palabra.</div>
         </section>
+        <section class="projects-view" id="projects-view" hidden aria-live="polite"></section>
         <footer class="page-footer"><span>Hecho para guardar las cosas que te hacen ilusión.</span><span>LINKITOS <i>✦</i></span></footer>
       </main>
     </div>
@@ -78,6 +80,27 @@
       </form>
     </dialog>
     <dialog class="modal category-modal" id="category-modal"><form id="category-form" method="dialog"><div class="modal-top"><div><div class="section-kicker">HAZLO TUYO</div><h2>Nueva categoría</h2></div><button class="icon-button close-modal" type="button" aria-label="Cerrar">×</button></div><p class="modal-intro">Crea un espacio para los links que quieras tener juntos.</p><label class="field-label" for="category-name">Nombre de la categoría</label><input id="category-name" name="name" type="text" placeholder="Por ejemplo, Plantas" maxlength="24" required /><div class="modal-actions"><button type="button" class="text-button close-modal">Cancelar</button><button type="submit" class="primary-button">Crear categoría <span>✦</span></button></div></form></dialog>
+    <dialog class="modal project-modal" id="project-modal">
+      <form id="project-form" method="dialog">
+        <div class="modal-top"><div><div class="section-kicker">UN ESPACIO PARA TU IDEA</div><h2>Nuevo proyecto</h2></div><button class="icon-button close-modal" type="button" aria-label="Cerrar">×</button></div>
+        <p class="modal-intro">Reúne inspiración, enlaces y fotos en un proyecto propio.</p>
+        <label class="field-label" for="project-name">Nombre del proyecto</label><input id="project-name" name="name" type="text" placeholder="Por ejemplo, Dormitorio" maxlength="80" required />
+        <label class="field-label" for="project-description">¿Qué tienes en mente?</label><textarea id="project-description" name="description" rows="3" maxlength="1000" placeholder="Colores, estilo, medidas o lo que quieras recordar…"></textarea>
+        <label class="field-label" for="project-cover">Foto de portada <span class="optional">OPCIONAL</span></label><input id="project-cover" name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+        <div class="modal-actions"><button type="button" class="text-button close-modal">Cancelar</button><button type="submit" class="primary-button">Crear proyecto <span>✦</span></button></div>
+      </form>
+    </dialog>
+    <dialog class="modal project-modal" id="project-entry-modal">
+      <form id="project-entry-form" method="dialog">
+        <div class="modal-top"><div><div class="section-kicker">INSPIRACIÓN PARA EL PROYECTO</div><h2>Añadir al proyecto</h2></div><button class="icon-button close-modal" type="button" aria-label="Cerrar">×</button></div>
+        <label class="field-label" for="project-entry-kind">¿Qué quieres guardar?</label><select id="project-entry-kind" name="kind"><option value="idea">Idea o nota</option><option value="link">Un enlace</option><option value="image">Una foto</option></select>
+        <label class="field-label" for="project-entry-title">Título</label><input id="project-entry-title" name="title" type="text" placeholder="Por ejemplo, Pared en verde oliva" maxlength="160" required />
+        <div id="project-entry-url-field" hidden><label class="field-label" for="project-entry-url">Enlace</label><input id="project-entry-url" name="url" type="url" placeholder="https://…" /></div>
+        <div id="project-entry-image-field" hidden><label class="field-label" for="project-entry-image">Imagen <span class="optional">HASTA 10 MB</span></label><input id="project-entry-image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" /></div>
+        <label class="field-label" for="project-entry-body">Detalles <span class="optional">OPCIONAL</span></label><textarea id="project-entry-body" name="body" rows="3" maxlength="2000" placeholder="Añade colores, medidas, materiales o cualquier detalle…"></textarea>
+        <div class="modal-actions"><button type="button" class="text-button close-modal">Cancelar</button><button type="submit" class="primary-button">Guardar <span>↗</span></button></div>
+      </form>
+    </dialog>
     <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title">
       <div class="auth-card">
         <a class="brand auth-brand" href="#" aria-label="Linkitos"><span class="brand-mark"><span></span><span></span><span></span></span><span>linkitos<span class="brand-dot">.</span></span></a>
@@ -90,5 +113,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="config.js"></script>
     <script src="app.js"></script>
+    <script src="projects.js"></script>
   </body>
 </html>

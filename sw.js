@@ -1,6 +1,6 @@
-const CACHE_NAME = "linkitos-shell-v1";
+const CACHE_NAME = "linkitos-shell-v2";
 const APP_ROOT = new URL("./", self.registration.scope);
-const SHELL = ["", "index.html", "styles.css", "app.js", "config.js", "manifest.webmanifest", "icon.svg"].map((path) => new URL(path, APP_ROOT).pathname);
+const SHELL = ["", "index.html", "styles.css", "app.js", "projects.js", "config.js", "manifest.webmanifest", "icon.svg"].map((path) => new URL(path, APP_ROOT).pathname);
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL)));
   self.skipWaiting();
