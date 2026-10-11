@@ -16,7 +16,7 @@ Then open `http://localhost:8000`. The installed PWA and share-to-Linkitos actio
 
 The app uses the existing `media-tracker` Supabase project. Linkitos data lives in separate `linkitos_*` tables. Row Level Security policies restrict each account to its own rows; Realtime refreshes the collection on other open devices. Project photos are stored in a private bucket with per-user access rules. The browser configuration contains only the project's publishable key. Never add a service-role or secret key to this folder.
 
-The **Proyectos** section creates independent spaces for plans such as a bedroom update. Each project can include a cover photo, ideas or notes, links, and reference photos. Project content syncs across signed-in devices and remains private to its owner. Uploaded project images support JPG, PNG, WebP, and GIF up to 10 MB.
+The **Proyectos** section creates independent spaces for plans such as a bedroom update. Each project can include a cover photo, ideas or notes, links, and reference photos. Product links can also be added directly from a category card, carrying over their image, price, category, and notes. Project content syncs across signed-in devices and remains private to its owner. Uploaded project images support JPG, PNG, WebP, and GIF up to 10 MB.
 
 Sign in with an existing Media Tracker account or create an account. On the first sign-in in a browser, previously saved Linkitos items are imported to the cloud; the six sample cards are omitted. The import runs once per browser to avoid copying the same local collection into multiple accounts.
 

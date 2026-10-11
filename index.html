@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#efede7" />
+    <meta name="theme-color" content="#191a1d" />
     <title>Linkitos — tus hallazgos, en su sitio</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -99,6 +99,14 @@
         <div id="project-entry-image-field" hidden><label class="field-label" for="project-entry-image">Imagen <span class="optional">HASTA 10 MB</span></label><input id="project-entry-image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" /></div>
         <label class="field-label" for="project-entry-body">Detalles <span class="optional">OPCIONAL</span></label><textarea id="project-entry-body" name="body" rows="3" maxlength="2000" placeholder="Añade colores, medidas, materiales o cualquier detalle…"></textarea>
         <div class="modal-actions"><button type="button" class="text-button close-modal">Cancelar</button><button type="submit" class="primary-button">Guardar <span>↗</span></button></div>
+      </form>
+    </dialog>
+    <dialog class="modal project-modal" id="assign-item-modal">
+      <form id="assign-item-form" method="dialog">
+        <div class="modal-top"><div><div class="section-kicker">LLEVA TUS HALLAZGOS CONTIGO</div><h2>Añadir a un proyecto</h2></div><button class="icon-button close-modal" type="button" aria-label="Cerrar">×</button></div>
+        <p class="modal-intro" id="assign-item-title">Elige dónde quieres guardar este link.</p>
+        <label class="field-label" for="assign-item-project">Proyecto</label><select id="assign-item-project" name="projectId" required></select>
+        <div class="modal-actions"><button type="button" class="text-button close-modal">Cancelar</button><button type="submit" class="primary-button">Añadir al proyecto <span>✦</span></button></div>
       </form>
     </dialog>
     <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title">

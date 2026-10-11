@@ -13,6 +13,8 @@ const projectsView = document.querySelector("#projects-view");
 const projectsNav = document.querySelector("#projects-nav");
 const projectModal = document.querySelector("#project-modal");
 const projectEntryModal = document.querySelector("#project-entry-modal");
+const assignItemModal = document.querySelector("#assign-item-modal");
+let pendingProjectItemId = null;
 
 function projectStatus(state, message) {
   const status = document.querySelector("#sync-status");
@@ -122,8 +124,8 @@ function renderProjectDetail() {
     </section>
     ${entries.length ? `<div class="project-entry-grid">${entries.map((entry, index) => `
       <article class="project-entry-card" style="animation-delay:${Math.min(index * 45, 270)}ms">
-        ${entry.image_path ? `<div class="project-entry-image-wrap"><img data-project-asset="${escapeHtml(entry.image_path)}" alt="${escapeHtml(entry.title)}" loading="lazy" /><span>${kindLabel[entry.kind] || "FOTO"}</span></div>` : `<div class="project-entry-type ${entry.kind}"><span>${entry.kind === "link" ? "↗" : "✦"}</span><small>${kindLabel[entry.kind] || "IDEA"}</small></div>`}
-        <div class="project-entry-copy"><span class="project-entry-kind">${kindLabel[entry.kind] || "IDEA"}</span><h3>${escapeHtml(entry.title)}</h3>${entry.body ? `<p>${escapeHtml(entry.body)}</p>` : ""}${entry.url ? `<a class="project-entry-link" href="${escapeHtml(projectSafeUrl(entry.url))}" target="_blank" rel="noopener noreferrer">Abrir enlace ↗</a>` : ""}<button class="project-entry-delete" data-delete-project-entry="${escapeHtml(entry.id)}" aria-label="Eliminar ${escapeHtml(entry.title)}" title="Eliminar">×</button></div>
+        ${entry.image_path || entry.image_url ? `<div class="project-entry-image-wrap"><img ${entry.image_path ? `data-project-asset="${escapeHtml(entry.image_path)}"` : `src="${escapeHtml(projectSafeUrl(entry.image_url))}"`} alt="${escapeHtml(entry.title)}" loading="lazy" /><span>${escapeHtml(entry.category || kindLabel[entry.kind] || "FOTO")}</span></div>` : `<div class="project-entry-type ${entry.kind}"><span>${entry.kind === "link" ? "↗" : "✦"}</span><small>${escapeHtml(entry.category || kindLabel[entry.kind] || "IDEA")}</small></div>`}
+        <div class="project-entry-copy"><span class="project-entry-kind">${kindLabel[entry.kind] || "IDEA"}${entry.category ? ` · ${escapeHtml(entry.category)}` : ""}</span><h3>${escapeHtml(entry.title)}</h3>${entry.price ? `<strong class="project-entry-price">${new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(entry.price)}</strong>` : ""}${entry.body ? `<p>${escapeHtml(entry.body)}</p>` : ""}${entry.url ? `<a class="project-entry-link" href="${escapeHtml(projectSafeUrl(entry.url))}" target="_blank" rel="noopener noreferrer">Abrir enlace ↗</a>` : ""}<button class="project-entry-delete" data-delete-project-entry="${escapeHtml(entry.id)}" aria-label="Eliminar ${escapeHtml(entry.title)}" title="Eliminar">×</button></div>
       </article>`).join("")}</div>` : `<div class="project-detail-empty"><div class="project-empty-art"><span>✦</span><i>⌂</i><b>↗</b></div><h3>Guarda aquí tu inspiración</h3><p>Añade una primera idea, una foto de referencia o un enlace que quieras tener a mano.</p><button class="primary-button" id="add-first-project-entry">＋ Añadir al proyecto</button></div>`}`;
   hydrateProjectAssets();
 }
@@ -139,7 +141,7 @@ async function loadProjects() {
   projectStatus("syncing", "Sincronizando proyectos");
   const [projectResult, entryResult] = await Promise.all([
     projectSupabase.from("linkitos_projects").select("id,name,description,cover_path,created_at,updated_at").order("updated_at", { ascending: false }),
-    projectSupabase.from("linkitos_project_entries").select("id,project_id,kind,title,body,url,image_path,created_at,updated_at").order("created_at", { ascending: false }),
+    projectSupabase.from("linkitos_project_entries").select("id,project_id,kind,title,body,url,image_url,price,category,image_path,created_at,updated_at").order("created_at", { ascending: false }),
   ]);
   if (projectResult.error) throw projectResult.error;
   if (entryResult.error) throw entryResult.error;
@@ -255,6 +257,57 @@ projectsView.addEventListener("click", async (event) => {
   }
 });
 
+function openAssignItemToProject(itemId) {
+  const item = data.items.find((entry) => entry.id === itemId);
+  if (!item) return;
+  if (!projectUser) { showToast("Inicia sesión para añadir links a un proyecto"); return; }
+  if (!projectRows.length) {
+    showToast("Crea primero un proyecto para guardar este link");
+    openProjects();
+    openProjectModal();
+    return;
+  }
+  pendingProjectItemId = itemId;
+  document.querySelector("#assign-item-title").textContent = `«${item.title}» se añadirá con su foto, precio y notas.`;
+  document.querySelector("#assign-item-project").innerHTML = projectRows.map((project) => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name)}</option>`).join("");
+  assignItemModal.showModal();
+}
+
+document.querySelector("#item-grid").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-add-item-to-project]");
+  if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
+  openAssignItemToProject(button.dataset.addItemToProject);
+});
+
+document.querySelector("#assign-item-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const item = data.items.find((entry) => entry.id === pendingProjectItemId);
+  const projectId = document.querySelector("#assign-item-project").value;
+  if (!item || !projectId) return;
+  try {
+    projectStatus("syncing");
+    const { error } = await projectSupabase.from("linkitos_project_entries").insert({
+      project_id: projectId,
+      kind: "link",
+      title: item.title,
+      body: item.notes || null,
+      url: item.url,
+      image_url: item.image || null,
+      price: Number(item.price) > 0 ? Number(item.price) : null,
+      category: item.category || null,
+    });
+    if (error) throw error;
+    const { error: updateError } = await projectSupabase.from("linkitos_projects").update({ updated_at: new Date().toISOString() }).eq("id", projectId);
+    if (updateError) throw updateError;
+    assignItemModal.close();
+    pendingProjectItemId = null;
+    await loadProjects();
+    showToast("Link añadido al proyecto con sus detalles");
+  } catch (error) { projectStatus("offline"); showToast(error.message || "No se pudo añadir el link al proyecto"); }
+});
+
 document.querySelector("#project-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
@@ -302,7 +355,7 @@ document.querySelector("#project-entry-form").addEventListener("submit", async (
     const entryImagePath = image?.size ? await uploadProjectImage(activeProjectId, image) : null;
     const { data: entry, error } = await projectSupabase.from("linkitos_project_entries").insert({
       id: entryId, project_id: activeProjectId, kind, title, body: body || null, url: safeUrl || null, image_path: entryImagePath,
-    }).select("id,project_id,kind,title,body,url,image_path,created_at,updated_at").single();
+    }).select("id,project_id,kind,title,body,url,image_url,price,category,image_path,created_at,updated_at").single();
     if (error) {
       if (entryImagePath) await removeProjectAsset(entryImagePath).catch(() => {});
       throw error;

@@ -133,3 +133,57 @@ body.auth-gate .app-shell{visibility:hidden}
 @media(max-width:1100px){.project-grid,.project-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.projects-view{padding-top:33px}.projects-heading{align-items:flex-start;flex-direction:column;gap:16px}.projects-heading h2{font-size:25px}.project-grid,.project-entry-grid{gap:13px}.project-cover{height:165px}.project-card-copy{padding:14px;min-height:137px}.project-detail-top{align-items:flex-start}.project-detail-top .primary-button{padding:11px 13px}.project-hero{min-height:225px}.project-hero-copy{padding:24px;max-width:90%}.project-entry-image-wrap{height:160px}}
 @media(max-width:480px){.projects-view{padding-top:28px}.project-grid,.project-entry-grid{grid-template-columns:1fr;gap:13px}.project-cover{height:190px}.project-card-copy{min-height:128px}.project-hero{min-height:225px}.project-hero-copy{padding:21px 18px;max-width:95%}.project-hero-copy h2{font-size:30px}.project-hero-copy p{font-size:12px}.project-delete{right:10px;top:10px}.project-entry-image-wrap{height:205px}.project-entry-type{height:94px}.projects-empty,.project-detail-empty{padding:52px 10px 58px}}
+
+/* A deeper evening palette with readable surfaces and soft lilac accents. */
+:root{color-scheme:dark;--ink:#f0edf2;--muted:#aaa6af;--paper:#191a1d;--white:#242529;--line:#34353a;--shadow:0 16px 42px #00000030}
+body,.main-content{background:#191a1d;color:#efedf1}
+.sidebar{background:#202125;border-color:#33343a}
+.brand{color:#f3eff5}.brand-dot{color:#b4a0d4}
+.side-caption{color:#99959f}
+.nav-link,.category-link{color:#b1adb7}.nav-link:hover,.category-link:hover{background:#2b2b31;color:#f2eef5}
+.nav-link.active,.category-link.selected{background:#322e3b;color:#e7ddf4}
+.nav-count,.category-number{color:#96919c}
+.icon-button{background:#2d2d33;color:#e4dfea}.icon-button:hover{background:#393740}
+.new-category{color:#aaa5b0}.new-category:hover{color:#e5d9f2}
+.little-note{background:#2a292f}.little-note:after{background:#55465f}.little-note p{color:#c0bac5}
+.profile{border-color:#35353b}.profile strong{color:#eeeaf2}.profile small{color:#aaa5af}
+.avatar{background:#49403c;color:#f2d7c5}.signout-button{color:#aaa3b0}.signout-button:hover{background:#37343d;color:#eee7f4}
+.topbar,.page-footer{border-color:#34353a}.breadcrumb{color:#a09ba6}.breadcrumb strong{color:#ded9e2}.breadcrumb span{color:#66616c}
+.help-button{color:#b4aeba}
+.welcome-copy p,.projects-heading p,.projects-intro p,.project-hero-copy p,.projects-empty p,.project-detail-empty p{color:#aaa5af}
+.eyebrow,.section-kicker{color:#aaa1b1}.eyebrow-line{background:#8d7ba4}
+.title-star,.nav-icon,.sparkle{color:#b7a2d5}
+.summary-strip{background:#292a30}.summary-icon.lilac{background:#3b3546;color:#c4b2e2}.summary-icon.peach{background:#45382f;color:#e1b999}
+.summary-cell div>span,.summary-message{color:#b0abb5}.summary-divider{background:#414148}.summary-orb.orb-one{background:#514461}.summary-orb.orb-two{background:#574437}
+.soft-count{background:#33333a;color:#c0bac5}
+.search-box,.sort-button{background:#242529;border-color:#3a3a41;color:#c5bfca}.search-box input{color:#eeeaf2}.search-box input::placeholder,.search-box kbd{color:#96919c}.search-box kbd{background:#35353c}
+.filter-pill{color:#b1abb7}.filter-pill:hover{background:#2d2d34;color:#eeeaf3}.filter-pill.active{background:#393343;color:#e0d3f0;border-color:#514660}
+.item-card,.project-card,.project-entry-card{background:#242529;border-color:#393940;box-shadow:0 14px 40px #00000026}
+.item-card:hover,.project-card:hover{box-shadow:0 20px 45px #00000046;border-color:#554b62}
+.item-photo,.project-entry-image-wrap{background:#2c2c32}.item-photo.no-image{background:linear-gradient(145deg,#2d2d33,#38313e);color:#b5a2d1}
+.card-category,.favorite-button,.project-delete{background:#222228e8;color:#eeeaf1;border-color:#4a4750}
+.favorite-button.is-favorite{color:#e692a2}
+.item-title,.project-card-copy strong,.project-entry-copy h3{color:#eeeaf1}.item-price{color:#d4c2ed}.item-domain,.item-date{color:#aaa5af}
+.item-bottom{border-color:#3a3a41}.card-link,.project-entry-link{color:#c3aedc}.card-link:hover,.project-entry-link:hover{color:#e5d7f2}.delete-link,.project-entry-delete{color:#a49da8}.delete-link:hover,.project-entry-delete:hover{color:#e9959a}
+.item-note{background:#2e2e34;color:#c0bac4}
+.empty-state h3,.projects-empty h3,.project-detail-empty h3{color:#eeeaf2}.empty-state p,.no-results{color:#aaa5af}.empty-illustration,.project-empty-art{background:linear-gradient(145deg,#373143,#39302b);color:#c4b2df}
+.projects-heading h2,.projects-intro h2{color:#f0edf2}.project-cover{background:radial-gradient(circle at 25% 28%,#4b3b4b 0,transparent 33%),radial-gradient(circle at 78% 66%,#343246 0,transparent 40%),linear-gradient(140deg,#303039,#302c35)}
+.project-cover-symbol{color:#c6b4df}.project-cover-count{background:#25252bd9;border-color:#55515c;color:#e2dce7}
+.project-card-copy>span{color:#b4aeba}.project-card-copy small,.project-entry-kind{color:#c0abd9}
+.project-back{color:#bbb5c0}.project-back:hover{color:#eee6f5}
+.project-hero{background:radial-gradient(ellipse at 16% 18%,#493744 0,transparent 36%),radial-gradient(ellipse at 83% 68%,#353149 0,transparent 42%),linear-gradient(135deg,#2d2d33,#302c35)}
+.project-hero-copy h2{color:#f1edf4}.project-hero-copy .section-kicker{color:#d3c5df}.project-hero-copy>span{color:#c3bdc8}
+.project-entry-type{background:linear-gradient(135deg,#35313e,#3a302c);color:#c2addc}.project-entry-type.link{background:linear-gradient(135deg,#2d3933,#393340);color:#b8d0be}
+.project-entry-copy p{color:#b8b2bd}.project-entry-price{display:block;color:#d8c6ec;font:700 14px Manrope,sans-serif;margin:4px 0 7px}
+.modal{background:#242529;color:#eeeaf2;border:1px solid #3a3a41;box-shadow:0 22px 90px #00000070}
+.modal::backdrop{background:#08080bd9}.modal-top h2{color:#f1edf3}.modal-intro{color:#b3adb9}
+.field-label{color:#d4ced8}.modal input,.modal select,.modal textarea,.auth-card input{background:#1d1e22;border-color:#414149;color:#f1edf4}
+.modal input::placeholder,.modal textarea::placeholder{color:#88838e}.modal input:focus,.modal select:focus,.modal textarea:focus,.auth-card input:focus{border-color:#a58fc3;box-shadow:0 0 0 3px #a58fc328}
+.close-modal{background:#33333a;color:#d2cbd7}.optional,.preview-hint{color:#aaa3ae}.text-button{color:#b6b0bb}.text-button:hover{color:#eee6f2}
+.auth-screen{background:radial-gradient(ellipse at 12% 12%,#3b3346 0,transparent 36%),radial-gradient(ellipse at 91% 86%,#46372e 0,transparent 33%),#191a1d}
+.auth-card{background:#242529;border-color:#3a3a41;box-shadow:0 24px 80px #00000060}.auth-card h1{color:#f1edf3}.auth-intro,.auth-switch{color:#b5afba}.auth-footnote{border-color:#3a3a41;color:#a7a1ab}.auth-switch button{color:#c8b2e5}
+.primary-button{background:#b8a5d5;color:#211d28;box-shadow:0 5px 16px #00000035}.primary-button>span{color:#443851}.primary-button:hover{background:#c7b7df}
+.toast{background:#35323c;color:#f3eff5;border:1px solid #514a5b}
+.sync-status{color:#b4afb8}
+.project-item-button{position:absolute;z-index:2;right:10px;top:46px;width:29px;height:29px;display:grid;place-items:center;border:1px solid #ffffff5c;border-radius:50%;background:#24242bdc;backdrop-filter:blur(8px);color:#e7daf4;font-size:19px;line-height:1;transition:transform .2s,background .2s,border-color .2s}
+.project-item-button:hover{transform:scale(1.1);background:#40384a;border-color:#d8c5ef}
