@@ -313,6 +313,7 @@ document.querySelector("#project-form").addEventListener("submit", async (event)
   const form = new FormData(event.currentTarget);
   const name = String(form.get("name") || "").trim();
   const description = String(form.get("description") || "").trim();
+  const initialNote = String(form.get("initialNote") || "").trim();
   const cover = form.get("cover");
   if (cover?.size) { const validation = validateProjectImage(cover); if (validation) { showToast(validation); return; } }
   const projectId = crypto.randomUUID();
@@ -331,6 +332,21 @@ document.querySelector("#project-form").addEventListener("submit", async (event)
     activeProjectId = project.id;
     projectModal.close();
     event.currentTarget.reset();
+    if (initialNote) {
+      const { data: note, error: noteError } = await projectSupabase.from("linkitos_project_entries").insert({
+        project_id: project.id,
+        kind: "idea",
+        title: "Primera idea",
+        body: initialNote,
+      }).select("id,project_id,kind,title,body,url,image_url,price,category,image_path,created_at,updated_at").single();
+      if (noteError) {
+        renderProjectDetail();
+        projectStatus("offline");
+        showToast("El proyecto se creó, pero no se pudo guardar la nota. Puedes añadirla desde dentro del proyecto.");
+        return;
+      }
+      projectEntryRows = [note, ...projectEntryRows.filter((row) => row.id !== note.id)];
+    }
     renderProjectDetail();
     projectStatus("synced");
     showToast("Proyecto creado");
