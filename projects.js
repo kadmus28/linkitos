@@ -10,6 +10,7 @@ let projectsChannel = null;
 let projectAssetCache = new Map();
 let projectLinkPreview = null;
 let projectLinkPreviewForUrl = "";
+const projectPreviewAttempts = new Set();
 
 const projectsView = document.querySelector("#projects-view");
 const projectsNav = document.querySelector("#projects-nav");
@@ -116,6 +117,32 @@ function renderProjectOverview() {
   hydrateProjectAssets();
 }
 
+async function refreshMissingProjectPreviews(projectId) {
+  if (!projectSupabase || !projectUser) return;
+  const pending = projectEntryRows.filter((entry) => entry.project_id === projectId && entry.kind === "link" && !entry.image_url && projectSafeUrl(entry.url) && !projectPreviewAttempts.has(entry.id));
+  pending.forEach((entry) => projectPreviewAttempts.add(entry.id));
+  for (let offset = 0; offset < pending.length; offset += 3) {
+    const updates = await Promise.all(pending.slice(offset, offset + 3).map(async (entry) => {
+      try {
+        const { data: preview, error } = await projectSupabase.functions.invoke("product-preview", { body: { url: projectSafeUrl(entry.url) } });
+        if (error) return null;
+        const imageUrl = projectSafeUrl(preview?.image);
+        const price = preview?.price != null && preview.price !== "" && Number.isFinite(Number(preview.price)) && Number(preview.price) >= 0 ? Number(preview.price) : null;
+        if (!imageUrl && (entry.price != null || price == null)) return null;
+        const values = {};
+        if (imageUrl) values.image_url = imageUrl;
+        if (entry.price == null && price != null) values.price = price;
+        if (!Object.keys(values).length) return null;
+        const { error: updateError } = await projectSupabase.from("linkitos_project_entries").update(values).eq("id", entry.id).eq("user_id", projectUser.id);
+        if (updateError) return null;
+        Object.assign(entry, values);
+        return true;
+      } catch { return null; }
+    }));
+    if (updates.some(Boolean) && projectsMode && activeProjectId === projectId) renderProjectDetail();
+  }
+}
+
 function renderProjectDetail() {
   const project = projectRows.find((entry) => entry.id === activeProjectId);
   if (!project) { activeProjectId = null; renderProjectOverview(); return; }
@@ -135,6 +162,7 @@ function renderProjectDetail() {
         <div class="project-entry-copy"><span class="project-entry-kind">${kindLabel[entry.kind] || "IDEA"}${entry.category ? ` · ${escapeHtml(entry.category)}` : ""}</span><h3>${escapeHtml(entry.title)}</h3>${entry.price ? `<strong class="project-entry-price">${new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(entry.price)}</strong>` : ""}${entry.body ? `<p>${escapeHtml(entry.body)}</p>` : ""}${entry.url ? `<a class="project-entry-link" href="${escapeHtml(projectSafeUrl(entry.url))}" target="_blank" rel="noopener noreferrer">Abrir enlace ↗</a>` : ""}<button class="project-entry-delete" data-delete-project-entry="${escapeHtml(entry.id)}" aria-label="Eliminar ${escapeHtml(entry.title)}" title="Eliminar">×</button></div>
       </article>`).join("")}</div>` : `<div class="project-detail-empty"><div class="project-empty-art"><span>✦</span><i>⌂</i><b>↗</b></div><h3>Guarda aquí tu inspiración</h3><p>Añade una primera idea, una foto de referencia o un enlace que quieras tener a mano.</p><button class="primary-button" id="add-first-project-entry">＋ Añadir al proyecto</button></div>`}`;
   hydrateProjectAssets();
+  refreshMissingProjectPreviews(project.id);
 }
 
 function renderProjects() {
