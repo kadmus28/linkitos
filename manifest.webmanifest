@@ -1,6 +1,6 @@
 {
   "id": "./",
-  "name": "Linkitos — tus hallazgos, en su sitio",
+  "name": "Linkitos",
   "short_name": "Linkitos",
   "description": "Guarda y organiza los productos que te gustan.",
   "lang": "es",
@@ -10,7 +10,7 @@
   "background_color": "#191a1d",
   "theme_color": "#191a1d",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "icon.svg?v=5", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ],
   "share_target": {
     "action": "./",
