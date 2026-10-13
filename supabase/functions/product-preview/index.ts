@@ -69,8 +69,9 @@ async function fetchPage(startUrl: URL) {
         redirect: "manual",
         signal: controller.signal,
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; LinkitosPreview/1.0)",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
           "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
+          "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
         },
       });
       if ([301, 302, 303, 307, 308].includes(page.status)) {
@@ -147,6 +148,27 @@ function readJsonLd(html: string): { title?: string; image?: string; price?: num
   return {};
 }
 
+async function fetchPinterestOEmbed(pageUrl: string): Promise<{ title?: string; image?: string }> {
+  const endpoint = new URL("https://www.pinterest.com/oembed.json");
+  endpoint.searchParams.set("url", pageUrl);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 9000);
+  try {
+    const result = await fetch(endpoint, { signal: controller.signal, headers: { "Accept": "application/json" } });
+    if (!result.ok) return {};
+    const text = await result.text();
+    if (text.length > 200_000) return {};
+    const data = JSON.parse(text);
+    let image = "";
+    try {
+      const parsed = new URL(String(data.thumbnail_url || ""));
+      if (parsed.protocol === "https:" && (parsed.hostname === "pinimg.com" || parsed.hostname.endsWith(".pinimg.com"))) image = parsed.toString();
+    } catch { /* Ignore invalid thumbnail URLs. */ }
+    return { title: typeof data.title === "string" ? data.title.slice(0, 180) : undefined, image: image || undefined };
+  } catch { return {}; }
+  finally { clearTimeout(timeout); }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return response({ error: "Método no permitido." }, 405);
@@ -162,21 +184,40 @@ Deno.serve(async (req: Request) => {
   if (!submittedUrl || submittedUrl.length > 2048) return response({ error: "Añade un enlace válido." }, 400);
   try {
     const url = new URL(submittedUrl);
-    const { html, finalUrl } = await fetchPage(url);
+    let html = "";
+    let finalUrl = url;
+    let pageError: unknown;
+    try {
+      const page = await fetchPage(url);
+      html = page.html;
+      finalUrl = page.finalUrl;
+    } catch (error) {
+      pageError = error;
+      const host = url.hostname.toLowerCase();
+      if (host !== "pin.it" && !host.endsWith(".pinterest.com") && host !== "pinterest.com") throw error;
+    }
     const meta = readMeta(html);
     const jsonLd = readJsonLd(html);
     const titleTag = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1];
-    const title = jsonLd.title || meta["og:title"] || meta["twitter:title"] || (titleTag ? decodeHtml(titleTag.replace(/<[^>]+>/g, "")) : undefined);
+    let title = jsonLd.title || meta["og:title"] || meta["twitter:title"] || (titleTag ? decodeHtml(titleTag.replace(/<[^>]+>/g, "")) : undefined);
     const rawImage = jsonLd.image || meta["og:image"] || meta["og:image:url"] || meta["twitter:image"];
     let image: string | undefined;
     if (rawImage) {
       try { const parsed = new URL(rawImage, finalUrl); if (["http:", "https:"].includes(parsed.protocol)) image = parsed.toString(); }
       catch { /* Ignore malformed image URLs. */ }
     }
+    if ((!title || !image) && (url.hostname === "pin.it" || url.hostname === "pinterest.com" || url.hostname.endsWith(".pinterest.com"))) {
+      const pinterest = await fetchPinterestOEmbed(submittedUrl);
+      title ||= pinterest.title;
+      image ||= pinterest.image || undefined;
+    }
     const rawPrice = jsonLd.price ?? meta["product:price:amount"] ?? meta["og:price:amount"] ?? meta["twitter:label1"];
     const numericPrice = rawPrice === undefined ? undefined : Number(String(rawPrice).replace(/[^\d,.-]/g, "").replace(",", "."));
     const price = Number.isFinite(numericPrice) && numericPrice >= 0 ? numericPrice : undefined;
-    if (!title && !image && price === undefined) throw new Error("La tienda no ofrece los datos del producto. Puedes rellenarlos manualmente.");
+    if (!title && !image && price === undefined) {
+      if (pageError instanceof Error) throw pageError;
+      throw new Error("La tienda no ofrece los datos del producto. Puedes rellenarlos manualmente.");
+    }
     return response({ title: title?.slice(0, 180), image, price, canonicalUrl: finalUrl.toString() });
   } catch (error) {
     return response({ error: error instanceof Error ? error.message : "No se pudieron leer los datos del enlace." }, 422);

@@ -143,6 +143,40 @@ async function refreshMissingProjectPreviews(projectId) {
   }
 }
 
+async function retryProjectEntryPreview(entryId, button) {
+  const entry = projectEntryRows.find((row) => row.id === entryId);
+  if (!entry || !projectSupabase || !projectUser) return;
+  button.disabled = true;
+  button.textContent = "Buscando…";
+  try {
+    const { data: preview, error } = await projectSupabase.functions.invoke("product-preview", { body: { url: projectSafeUrl(entry.url) } });
+    if (error) {
+      let message = error.message;
+      try { message = (await error.context.json()).error || message; } catch { /* Use the SDK message. */ }
+      throw new Error(message);
+    }
+    const imageUrl = projectSafeUrl(preview?.image);
+    const price = preview?.price != null && preview.price !== "" && Number.isFinite(Number(preview.price)) && Number(preview.price) >= 0 ? Number(preview.price) : null;
+    if (!imageUrl && (entry.price != null || price == null)) {
+      showToast("La tienda no ha publicado una imagen para este enlace");
+      return;
+    }
+    const values = {};
+    if (imageUrl) values.image_url = imageUrl;
+    if (entry.price == null && price != null) values.price = price;
+    const { error: updateError } = await projectSupabase.from("linkitos_project_entries").update(values).eq("id", entry.id).eq("user_id", projectUser.id);
+    if (updateError) throw updateError;
+    Object.assign(entry, values);
+    projectPreviewAttempts.add(entry.id);
+    renderProjectDetail();
+    showToast(imageUrl ? "Previsualización actualizada" : "Precio actualizado; la tienda no publica una imagen");
+  } catch (error) {
+    showToast(error.message || "No se pudo crear la previsualización");
+  } finally {
+    if (button.isConnected) { button.disabled = false; button.textContent = "↻ Buscar imagen"; }
+  }
+}
+
 function renderProjectDetail() {
   const project = projectRows.find((entry) => entry.id === activeProjectId);
   if (!project) { activeProjectId = null; renderProjectOverview(); return; }
@@ -158,7 +192,7 @@ function renderProjectDetail() {
     </section>
     ${entries.length ? `<div class="project-entry-grid">${entries.map((entry, index) => `
       <article class="project-entry-card" style="animation-delay:${Math.min(index * 45, 270)}ms">
-        ${entry.image_path || projectSafeUrl(entry.image_url) ? `<div class="project-entry-image-wrap"><img ${entry.image_path ? `data-project-asset="${escapeHtml(entry.image_path)}"` : `src="${escapeHtml(projectSafeUrl(entry.image_url))}"`} alt="${escapeHtml(entry.title)}" loading="lazy" /><span>${escapeHtml(entry.category || kindLabel[entry.kind] || "FOTO")}</span></div>` : entry.kind === "link" ? `<div class="project-link-preview-card"><span class="project-link-preview-mark">↗</span><div><small>${escapeHtml(projectUrlHost(entry.url))}</small><strong>${escapeHtml(entry.title)}</strong><span>${escapeHtml(entry.url || "Enlace guardado")}</span></div></div>` : entry.kind === "idea" ? `<div class="project-entry-text-preview"><span>“</span><p>${escapeHtml(entry.body || entry.title)}</p><small>IDEA GUARDADA</small></div>` : `<div class="project-entry-type ${entry.kind}"><span>✦</span><small>${kindLabel[entry.kind] || "FOTO"}</small></div>`}
+        ${entry.image_path || projectSafeUrl(entry.image_url) ? `<div class="project-entry-image-wrap"><img ${entry.image_path ? `data-project-asset="${escapeHtml(entry.image_path)}"` : `src="${escapeHtml(projectSafeUrl(entry.image_url))}"`} alt="${escapeHtml(entry.title)}" loading="lazy" onerror="this.hidden=true;this.parentElement.classList.add('image-unavailable')" /><div class="project-entry-image-fallback"><small>${escapeHtml(projectUrlHost(entry.url))}</small><strong>${escapeHtml(entry.title)}</strong><span>${escapeHtml(entry.url || "Imagen guardada")}</span>${entry.kind === "link" ? `<button class="project-preview-retry" type="button" data-project-preview="${escapeHtml(entry.id)}">↻ Buscar otra imagen</button>` : ""}</div><span>${escapeHtml(entry.category || kindLabel[entry.kind] || "FOTO")}</span></div>` : entry.kind === "link" ? `<div class="project-link-preview-card"><span class="project-link-preview-mark">↗</span><div><small>${escapeHtml(projectUrlHost(entry.url))}</small><strong>${escapeHtml(entry.title)}</strong><span>${escapeHtml(entry.url || "Enlace guardado")}</span><button class="project-preview-retry" type="button" data-project-preview="${escapeHtml(entry.id)}">↻ Buscar imagen</button></div></div>` : entry.kind === "idea" ? `<div class="project-entry-text-preview"><span>“</span><p>${escapeHtml(entry.body || entry.title)}</p><small>IDEA GUARDADA</small></div>` : `<div class="project-entry-type ${entry.kind}"><span>✦</span><small>${kindLabel[entry.kind] || "FOTO"}</small></div>`}
         <div class="project-entry-copy"><span class="project-entry-kind">${kindLabel[entry.kind] || "IDEA"}${entry.category ? ` · ${escapeHtml(entry.category)}` : ""}</span><h3>${escapeHtml(entry.title)}</h3>${entry.price ? `<strong class="project-entry-price">${new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(entry.price)}</strong>` : ""}${entry.body ? `<p>${escapeHtml(entry.body)}</p>` : ""}${entry.url ? `<a class="project-entry-link" href="${escapeHtml(projectSafeUrl(entry.url))}" target="_blank" rel="noopener noreferrer">Abrir enlace ↗</a>` : ""}<button class="project-entry-delete" data-delete-project-entry="${escapeHtml(entry.id)}" aria-label="Eliminar ${escapeHtml(entry.title)}" title="Eliminar">×</button></div>
       </article>`).join("")}</div>` : `<div class="project-detail-empty"><div class="project-empty-art"><span>✦</span><i>⌂</i><b>↗</b></div><h3>Guarda aquí tu inspiración</h3><p>Añade una primera idea, una foto de referencia o un enlace que quieras tener a mano.</p><button class="primary-button" id="add-first-project-entry">＋ Añadir al proyecto</button></div>`}`;
   hydrateProjectAssets();
@@ -308,6 +342,8 @@ document.querySelector("#project-entry-url").addEventListener("input", () => {
 document.querySelectorAll("#project-modal, #project-entry-modal").forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
 
 projectsView.addEventListener("click", async (event) => {
+  const previewButton = event.target.closest("[data-project-preview]");
+  if (previewButton) { await retryProjectEntryPreview(previewButton.dataset.projectPreview, previewButton); return; }
   if (event.target.closest("#create-project, #create-first-project")) { openProjectModal(); return; }
   if (event.target.closest("#add-project-entry, #add-first-project-entry")) { openProjectEntryModal(); return; }
   if (event.target.closest("#back-to-projects")) { activeProjectId = null; renderProjectOverview(); return; }
