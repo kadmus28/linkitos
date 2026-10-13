@@ -1,4 +1,4 @@
-const CACHE_NAME = "linkitos-shell-v6";
+const CACHE_NAME = "linkitos-shell-v7";
 const APP_ROOT = new URL("./", self.registration.scope);
 const SHELL = ["", "index.html", "styles.css", "app.js", "projects.js", "config.js", "manifest.webmanifest", "icon.svg"].map((path) => new URL(path, APP_ROOT).pathname);
 self.addEventListener("install", (event) => {

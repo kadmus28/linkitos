@@ -8,6 +8,8 @@ let activeProjectId = null;
 let projectsMode = false;
 let projectsChannel = null;
 let projectAssetCache = new Map();
+let projectLinkPreview = null;
+let projectLinkPreviewForUrl = "";
 
 const projectsView = document.querySelector("#projects-view");
 const projectsNav = document.querySelector("#projects-nav");
@@ -28,6 +30,11 @@ function projectSafeUrl(value) {
     const url = new URL(value);
     return ["http:", "https:"].includes(url.protocol) ? url.href : "";
   } catch { return ""; }
+}
+
+function projectUrlHost(value) {
+  try { return new URL(projectSafeUrl(value)).hostname.replace(/^www\./, ""); }
+  catch { return ""; }
 }
 
 function projectFileExtension(file) {
@@ -124,7 +131,7 @@ function renderProjectDetail() {
     </section>
     ${entries.length ? `<div class="project-entry-grid">${entries.map((entry, index) => `
       <article class="project-entry-card" style="animation-delay:${Math.min(index * 45, 270)}ms">
-        ${entry.image_path || entry.image_url ? `<div class="project-entry-image-wrap"><img ${entry.image_path ? `data-project-asset="${escapeHtml(entry.image_path)}"` : `src="${escapeHtml(projectSafeUrl(entry.image_url))}"`} alt="${escapeHtml(entry.title)}" loading="lazy" /><span>${escapeHtml(entry.category || kindLabel[entry.kind] || "FOTO")}</span></div>` : `<div class="project-entry-type ${entry.kind}"><span>${entry.kind === "link" ? "↗" : "✦"}</span><small>${escapeHtml(entry.category || kindLabel[entry.kind] || "IDEA")}</small></div>`}
+        ${entry.image_path || projectSafeUrl(entry.image_url) ? `<div class="project-entry-image-wrap"><img ${entry.image_path ? `data-project-asset="${escapeHtml(entry.image_path)}"` : `src="${escapeHtml(projectSafeUrl(entry.image_url))}"`} alt="${escapeHtml(entry.title)}" loading="lazy" /><span>${escapeHtml(entry.category || kindLabel[entry.kind] || "FOTO")}</span></div>` : entry.kind === "link" ? `<div class="project-link-preview-card"><span class="project-link-preview-mark">↗</span><div><small>${escapeHtml(projectUrlHost(entry.url))}</small><strong>${escapeHtml(entry.title)}</strong><span>${escapeHtml(entry.url || "Enlace guardado")}</span></div></div>` : entry.kind === "idea" ? `<div class="project-entry-text-preview"><span>“</span><p>${escapeHtml(entry.body || entry.title)}</p><small>IDEA GUARDADA</small></div>` : `<div class="project-entry-type ${entry.kind}"><span>✦</span><small>${kindLabel[entry.kind] || "FOTO"}</small></div>`}
         <div class="project-entry-copy"><span class="project-entry-kind">${kindLabel[entry.kind] || "IDEA"}${entry.category ? ` · ${escapeHtml(entry.category)}` : ""}</span><h3>${escapeHtml(entry.title)}</h3>${entry.price ? `<strong class="project-entry-price">${new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(entry.price)}</strong>` : ""}${entry.body ? `<p>${escapeHtml(entry.body)}</p>` : ""}${entry.url ? `<a class="project-entry-link" href="${escapeHtml(projectSafeUrl(entry.url))}" target="_blank" rel="noopener noreferrer">Abrir enlace ↗</a>` : ""}<button class="project-entry-delete" data-delete-project-entry="${escapeHtml(entry.id)}" aria-label="Eliminar ${escapeHtml(entry.title)}" title="Eliminar">×</button></div>
       </article>`).join("")}</div>` : `<div class="project-detail-empty"><div class="project-empty-art"><span>✦</span><i>⌂</i><b>↗</b></div><h3>Guarda aquí tu inspiración</h3><p>Añade una primera idea, una foto de referencia o un enlace que quieras tener a mano.</p><button class="primary-button" id="add-first-project-entry">＋ Añadir al proyecto</button></div>`}`;
   hydrateProjectAssets();
@@ -198,9 +205,56 @@ function syncProjectEntryFields() {
   document.querySelector("#project-entry-image-field").hidden = kind !== "image";
   const url = document.querySelector("#project-entry-url");
   const image = document.querySelector("#project-entry-image");
+  const title = document.querySelector("#project-entry-title");
   url.required = kind === "link";
   image.required = kind === "image";
+  title.required = kind !== "link";
+  projectLinkPreview = null;
+  projectLinkPreviewForUrl = "";
+  document.querySelector("#project-entry-link-preview").hidden = true;
   document.querySelector("#project-entry-body").placeholder = kind === "idea" ? "Colores, medidas, materiales o cualquier detalle…" : "Añade contexto o detalles (opcional)…";
+}
+
+async function fetchProjectLinkPreview({ notify = true } = {}) {
+  const input = document.querySelector("#project-entry-url");
+  const url = projectSafeUrl(input.value.trim());
+  if (!url) { if (notify) showToast("Pega primero un enlace válido para ver la previsualización"); return null; }
+  const button = document.querySelector("#project-entry-preview-button");
+  const previewCard = document.querySelector("#project-entry-link-preview");
+  const titleField = document.querySelector("#project-entry-title");
+  button.disabled = true;
+  button.textContent = "Buscando la vista previa…";
+  try {
+    const { data: preview, error } = await projectSupabase.functions.invoke("product-preview", { body: { url } });
+    if (error) {
+      let message = error.message;
+      try { message = (await error.context.json()).error || message; } catch { /* Use the SDK message. */ }
+      throw new Error(message);
+    }
+    projectLinkPreview = {
+      title: String(preview.title || "").trim(),
+      imageUrl: projectSafeUrl(preview.image),
+      price: Number.isFinite(Number(preview.price)) && Number(preview.price) >= 0 ? Number(preview.price) : null,
+    };
+    projectLinkPreviewForUrl = url;
+    if (!titleField.value.trim() && projectLinkPreview.title) titleField.value = projectLinkPreview.title;
+    const image = document.querySelector("#project-entry-preview-image");
+    const icon = document.querySelector("#project-entry-preview-icon");
+    image.hidden = !projectLinkPreview.imageUrl;
+    image.src = projectLinkPreview.imageUrl || "";
+    icon.hidden = Boolean(projectLinkPreview.imageUrl);
+    document.querySelector("#project-entry-preview-domain").textContent = projectUrlHost(preview.canonicalUrl || url);
+    document.querySelector("#project-entry-preview-title").textContent = projectLinkPreview.title || "Vista previa del enlace";
+    document.querySelector("#project-entry-preview-url").textContent = projectUrlHost(preview.canonicalUrl || url);
+    previewCard.hidden = false;
+    return projectLinkPreview;
+  } catch (error) {
+    if (notify) showToast(error.message || "La tienda no ofrece datos para crear una vista previa");
+    return null;
+  } finally {
+    button.disabled = false;
+    button.innerHTML = "✦ &nbsp; Ver previsualización";
+  }
 }
 
 async function removeProjectAsset(path) {
@@ -215,6 +269,14 @@ async function removeProjectAsset(path) {
 projectsNav.addEventListener("click", openProjects);
 document.querySelectorAll(".nav-link[data-filter]").forEach((button) => button.addEventListener("click", () => setProjectsVisibility(false)));
 document.querySelector("#project-entry-kind").addEventListener("change", syncProjectEntryFields);
+document.querySelector("#project-entry-preview-button").addEventListener("click", () => fetchProjectLinkPreview());
+document.querySelector("#project-entry-url").addEventListener("input", () => {
+  if (projectLinkPreviewForUrl !== projectSafeUrl(document.querySelector("#project-entry-url").value.trim())) {
+    projectLinkPreview = null;
+    projectLinkPreviewForUrl = "";
+    document.querySelector("#project-entry-link-preview").hidden = true;
+  }
+});
 document.querySelectorAll("#project-modal, #project-entry-modal").forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
 
 projectsView.addEventListener("click", async (event) => {
@@ -357,12 +419,15 @@ document.querySelector("#project-entry-form").addEventListener("submit", async (
   event.preventDefault();
   const form = new FormData(event.currentTarget);
   const kind = String(form.get("kind"));
-  const title = String(form.get("title") || "").trim();
+  let title = String(form.get("title") || "").trim();
   const body = String(form.get("body") || "").trim();
   const url = String(form.get("url") || "").trim();
   const image = form.get("image");
   const safeUrl = kind === "link" ? projectSafeUrl(url) : "";
   if (kind === "link" && !safeUrl) { showToast("Introduce un enlace que empiece por http:// o https://"); return; }
+  if (kind === "link" && (!projectLinkPreview || projectLinkPreviewForUrl !== safeUrl)) await fetchProjectLinkPreview({ notify: false });
+  if (!title && kind === "link") title = String(projectLinkPreview?.title || "").trim();
+  if (!title) { showToast("Añade un título para guardar este elemento"); return; }
   if (kind === "image" && !image?.size) { showToast("Elige una foto para añadirla al proyecto"); return; }
   if (image?.size) { const validation = validateProjectImage(image); if (validation) { showToast(validation); return; } }
   try {
@@ -370,7 +435,15 @@ document.querySelector("#project-entry-form").addEventListener("submit", async (
     const entryId = crypto.randomUUID();
     const entryImagePath = image?.size ? await uploadProjectImage(activeProjectId, image) : null;
     const { data: entry, error } = await projectSupabase.from("linkitos_project_entries").insert({
-      id: entryId, project_id: activeProjectId, kind, title, body: body || null, url: safeUrl || null, image_path: entryImagePath,
+      id: entryId,
+      project_id: activeProjectId,
+      kind,
+      title,
+      body: body || null,
+      url: safeUrl || null,
+      image_url: kind === "link" && projectLinkPreviewForUrl === safeUrl ? projectLinkPreview?.imageUrl || null : null,
+      price: kind === "link" && projectLinkPreviewForUrl === safeUrl ? projectLinkPreview?.price ?? null : null,
+      image_path: entryImagePath,
     }).select("id,project_id,kind,title,body,url,image_url,price,category,image_path,created_at,updated_at").single();
     if (error) {
       if (entryImagePath) await removeProjectAsset(entryImagePath).catch(() => {});
@@ -384,6 +457,7 @@ document.querySelector("#project-entry-form").addEventListener("submit", async (
     }
     projectEntryModal.close();
     event.currentTarget.reset();
+    syncProjectEntryFields();
     renderProjectDetail();
     projectStatus("synced");
     showToast("Guardado en el proyecto");
