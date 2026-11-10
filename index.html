@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#191a1d" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Linkitos" />
+    <script>window.__installPrompt=null;addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__installPrompt=e;});</script>
     <title>Linkitos</title>
     <link rel="icon" type="image/svg+xml" href="icon.svg?v=5" />
     <link rel="apple-touch-icon" href="icon-192.png" />
@@ -11,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=9" />
+    <link rel="stylesheet" href="styles.css?v=10" />
   </head>
   <body>
     <div class="app-shell">
@@ -39,7 +43,7 @@
         <header class="topbar">
           <button class="mobile-menu icon-button" id="mobile-menu" aria-label="Abrir menú">☰</button>
           <div class="breadcrumb">Mi espacio <span>/</span> <strong id="crumb-label">Todos mis links</strong></div>
-          <div class="top-actions"><span class="sync-status" id="sync-status"><i></i><span>Sincronizado</span></span><button class="help-button" title="Ayuda">ⓘ <span>¿Cómo funciona?</span></button><button class="avatar top-avatar" id="top-avatar">M</button></div>
+          <div class="top-actions"><span class="sync-status" id="sync-status"><i></i><span>Sincronizado</span></span><button class="help-button install-button" id="install-app" title="Instalar Linkitos como app" hidden>⤓ <span>Instalar app</span></button><button class="help-button" title="Ayuda">ⓘ <span>¿Cómo funciona?</span></button><button class="avatar top-avatar" id="top-avatar">M</button></div>
         </header>
 
         <section class="welcome-row" id="welcome-row">
@@ -123,7 +127,7 @@
     </section>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="config.js"></script>
-    <script src="app.js?v=9"></script>
-    <script src="projects.js?v=9"></script>
+    <script src="app.js?v=10"></script>
+    <script src="projects.js?v=10"></script>
   </body>
 </html>
