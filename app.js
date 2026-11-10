@@ -401,33 +401,6 @@ async function initialize() {
   }
 }
 initialize();
-// --- Instalar como app ---
-const isStandaloneApp = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
-const isIOSDevice = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-const installButton = document.getElementById("install-app");
-if (installButton) {
-  installButton.hidden = isStandaloneApp();
-  installButton.addEventListener("click", async () => {
-    const promptEvent = window.__installPrompt;
-    if (promptEvent) {
-      promptEvent.prompt();
-      const choice = await promptEvent.userChoice.catch(() => null);
-      window.__installPrompt = null;
-      if (choice && choice.outcome === "accepted") installButton.hidden = true;
-      return;
-    }
-    const ua = navigator.userAgent, android = /android/i.test(ua);
-    let how;
-    if (isIOSDevice()) how = /crios|fxios|edgios/i.test(ua) ? "Ábrela en Safari, pulsa Compartir (cuadrado con flecha) y elige \"Añadir a pantalla de inicio\"." : "Pulsa el botón Compartir de Safari (cuadrado con flecha hacia arriba) y elige \"Añadir a pantalla de inicio\".";
-    else if (/samsungbrowser/i.test(ua)) how = "Pulsa el menú (☰) de Samsung Internet → \"Añadir página a\" → \"Pantalla de inicio\".";
-    else if (/firefox/i.test(ua)) how = android ? "Pulsa el menú (⋮) de Firefox y elige \"Instalar\" o \"Añadir a pantalla de inicio\"." : "Firefox de ordenador no permite instalar webs como app. Ábrela en Chrome o Edge.";
-    else if (/edg\//i.test(ua)) how = "Pulsa el menú (…) de Edge → \"Aplicaciones\" → \"Instalar este sitio como aplicación\".";
-    else if (android) how = "Pulsa el menú (⋮) de Chrome y elige \"Instalar aplicación\" o \"Añadir a pantalla de inicio\" → \"Instalar\".";
-    else how = "En Chrome: pulsa el icono de instalar a la derecha de la barra de direcciones, o el menú (⋮) → \"Transmitir, guardar y compartir\" → \"Instalar página como aplicación\".";
-    alert("Instalar Linkitos\n\n" + how);
-  });
-  addEventListener("appinstalled", () => { installButton.hidden = true; });
-}
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("./sw.js").catch(() => setSyncStatus("offline", "Modo web"));
 }

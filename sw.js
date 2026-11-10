@@ -1,7 +1,7 @@
-const CACHE_NAME = "linkitos-shell-v11";
+const CACHE_NAME = "linkitos-shell-v12";
 // Solo borra cachés propias: Media Tracker vive en el mismo dominio (kadmus28.github.io).
 const APP_ROOT = new URL("./", self.registration.scope);
-const SHELL = ["", "index.html", "styles.css?v=10", "app.js?v=10", "projects.js?v=10", "config.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"].map((path) => new URL(path, APP_ROOT).toString());
+const SHELL = ["", "index.html", "styles.css?v=11", "app.js?v=11", "projects.js?v=11", "config.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"].map((path) => new URL(path, APP_ROOT).toString());
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL)));
   self.skipWaiting();
